@@ -1,9 +1,10 @@
+import os
+import random
 from pathlib import Path
 
 import click
 import pandas as pd
-import random
-import os
+from sklearn.model_selection import KFold
 
 random.seed(100)
 
@@ -22,9 +23,33 @@ def get_users_to_keep(df):
     return keep_users
 
 
-def subsample(df, keepusers):
+def get_subsample(df, keepusers):
     df_subsample = df[df.user_id.isin(keepusers)]
     return df_subsample
+
+
+def get_k_fold(df):
+    all_users = df.user_id.unique()
+    kf = KFold(n_splits=5)
+
+    ((V_train_index, V_test_index),
+     (W_train_index, W_test_index),
+     (X_train_index, X_test_index),
+     (Y_train_index, Y_test_index),
+     (Z_train_index, Z_test_index)) = list(kf.split(all_users))
+
+    ((V_train, V_test),
+     (W_train, W_test),
+     (X_train, X_test),
+     (Y_train, Y_test),
+     (Z_train, Z_test)) = (
+        (df[df.user_id.isin(all_users[V_train_index])], df[df.user_id.isin(all_users[V_test_index])]),
+        (df[df.user_id.isin(all_users[W_train_index])], df[df.user_id.isin(all_users[W_test_index])]),
+        (df[df.user_id.isin(all_users[X_train_index])], df[df.user_id.isin(all_users[X_test_index])]),
+        (df[df.user_id.isin(all_users[Y_train_index])], df[df.user_id.isin(all_users[Y_test_index])]),
+        (df[df.user_id.isin(all_users[Z_train_index])], df[df.user_id.isin(all_users[Z_test_index])]))
+
+    return (V_train, V_test), (W_train, W_test), (X_train, X_test), (Y_train, Y_test), (Z_train, Z_test)
 
 
 def get_gt(path):
@@ -39,8 +64,8 @@ def get_gt(path):
 
 @click.command()
 @click.option('--data-path', default=None, help='Directory for the CSV files')
-@click.option('--out-path', default=None, help='Output directory of preprocessed CSV files')
-def main(data_path, out_path):
+@click.option('--subsample', default=False, help='create subsample')
+def main(data_path, subsample):
     # calculate path to files
     data_directory = Path(data_path) if data_path else default_data_directory
     output_directory = data_directory.joinpath('preprocess')
@@ -51,18 +76,21 @@ def main(data_path, out_path):
     print('reading test..')
     df_test = get_data(data_directory, 'test.csv')
 
-    print('get keepable users list')
-    keepable_users = get_users_to_keep(df_non_test)
+    # get_k_fold(df_non_test) # enable if needed
 
-    print('start filtering')
-    df_non_test_sub = subsample(df_non_test, keepable_users)
-    df_ds_test_sub = subsample(df_test, keepable_users)
+    if subsample:
+        print('get keepable users list')
+        keepable_users = get_users_to_keep(df_non_test)
 
-    if not os.path.exists(output_directory):
-        os.mkdir(output_directory)
+        print('start filtering')
+        df_non_test_sub = get_subsample(df_non_test, keepable_users)
+        df_test_sub = get_subsample(df_test, keepable_users)
 
-    df_non_test_sub.to_csv(output_directory.joinpath('test_subsample.csv'), sep=',', index=None, header=True)
-    df_ds_test_sub.to_csv(output_directory.joinpath('train_subsample.csv'), sep=',', index=None, header=True)
+        if not os.path.exists(output_directory):
+            os.mkdir(output_directory)
+
+        df_non_test_sub.to_csv(output_directory.joinpath('test_subsample.csv'), sep=',', index=None, header=True)
+        df_test_sub.to_csv(output_directory.joinpath('train_subsample.csv'), sep=',', index=None, header=True)
 
     print('finished')
 
