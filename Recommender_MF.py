@@ -86,27 +86,24 @@ DEBUG = True
 
 class MFRecommender(BaseEstimator, RegressorMixin):
 
+    #def create_Ratings_Matrix(self):
 
-
-    def create_Ratings_Matrix(self):
-
-        self.movieIds = self.ratings_train.item.unique()
-        self.movieIds.sort()
-        self.userIds = self.ratings_train.user.unique()
-        self.userIds.sort()
-        self.m = self.userIds.size
+        #self.movieIds = self.ratings_train.item.unique()
+        #self.movieIds.sort()
+        #self.userIds = self.ratings_train.user.unique()
+        #self.userIds.sort()
+        #self.m = self.userIds.size
 
         ## movies and users should have consecutive indexes starting from 0
-        self.movieId_to_movieIDX = dict(zip(self.movieIds, range(0, self.movieIds.size)))
-        self.movieIDX_to_movieId = dict(zip(range(0, self.movieIds.size), self.movieIds))
+        #self.movieId_to_movieIDX = dict(zip(self.movieIds, range(0, self.movieIds.size)))
+        #self.movieIDX_to_movieId = dict(zip(range(0, self.movieIds.size), self.movieIds))
 
 
-        self.userId_to_userIDX = dict(zip(self.userIds, range(0, self.userIds.size )))
-        self.userIDX_to_userId = dict(zip(range(0, self.userIds.size), self.userIds))
+        #self.userId_to_userIDX = dict(zip(self.userIds, range(0, self.userIds.size )))
+        #self.userIDX_to_userId = dict(zip(range(0, self.userIds.size), self.userIds))
 
-        self.R = sp.csr_matrix((self.ratings_train.rating, (self.ratings_train.user.map(self.userId_to_userIDX), self.ratings_train.item.map(self.movieId_to_movieIDX))))
-
-
+        #self.R = sp.csr_matrix((self.ratings_train.rating, (self.ratings_train.user.map(self.userId_to_userIDX), self.ratings_train.item.map(self.movieId_to_movieIDX))))
+        
     def __init__(self, k = 5, eta = 0.002, lam = 0., n_epochs = 5, s_batch = 1, w_average = True, w_biases = True, rnd_mean = 0, rnd_std = 0.1):
         self.k = k
         self.eta = eta
@@ -290,18 +287,17 @@ class MFRecommender(BaseEstimator, RegressorMixin):
             return -math.sqrt(mse)
 
 
-    def build_model(self, ratings_train, movies = None):
-        self.ratings_train = ratings_train
-        self.create_Ratings_Matrix()
+    def build_model(self, train, movies = None):
+        self.train = train
 
-        X, y, n_users, n_items = to_Xy_format(self.R)
-        self.fit(X, y, n_users, n_items)
+        X, y, n_users, n_actions = to_Xy_format(self.R)
+        self.fit(X, y, n_users, n_actions)
 
 
-    def get_recommendations(self, user_id, item_ids=None, topN=20):
-        movies_rated_by_user = self.ratings_train[self.ratings_train.user == user_id].item.tolist()
+    def get_recommendations(self, session_id, item_ids=None, topN=20):
+        actions_in_session = self.train[self.train.session == session_id].item.tolist()
 
-        u_idx = self.userId_to_userIDX[user_id]
+        s_idx = self.SessionId_to_SessionIDX[session_id]
 
 
         one_hot = np.zeros(self.n_users_)
