@@ -23,6 +23,7 @@ def remove_rows_with_non_numeric_reference(dataframe):
     return: dataframe with numeric references only
     """
     # https://stackoverflow.com/questions/33961028/remove-non-numeric-rows-in-one-column-with-pandas
+    dataframe.dropna(subset=['reference'], inplace=True)
     return dataframe[dataframe.reference.apply(lambda x: x.isnumeric())]
 
 def give_weights(dataframe):
@@ -65,7 +66,6 @@ def prepare_dataset(dataframe):
     dataframe = give_weights(dataframe)
     dataframe = drop_columns(dataframe)
     dataframe = group_by(dataframe)
-    dataframe.dropna(subset=['reference'], inplace=True)
     return dataframe
 
 def sparse_matrix(prepared_dataset):
