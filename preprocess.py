@@ -19,7 +19,7 @@ def get_data(dir, file):
 
 def get_users_to_keep(df):
     all_users = df.user_id.unique()
-    keep_users = random.sample(list(all_users), round(all_users.size * 0.05))  # keep 10% of the users
+    keep_users = random.sample(list(all_users), round(all_users.size * 0.01))  # keep 10% of the users
     return keep_users
 
 
