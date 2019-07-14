@@ -19,9 +19,7 @@ class Ensemble:
         ranked_impressions = list()
 
         for row in self.labels.itertuples():
-
-            if self.strategy == 'voting':
-                ranked_impressions.append(self.voting(row))
+            ranked_impressions.append(self.voting(row))
 
         self.prediction["item_recommendations"] = ranked_impressions
 
