@@ -19,7 +19,7 @@ def get_data(dir, file):
 
 def get_users_to_keep(df):
     all_users = df.user_id.unique()
-    keep_users = random.sample(list(all_users), round(all_users.size * 0.1))  # keep 10% of the users
+    keep_users = random.sample(list(all_users), round(all_users.size * 0.05))  # keep 10% of the users
     return keep_users
 
 
@@ -89,8 +89,8 @@ def main(data_path, subsample):
         if not os.path.exists(output_directory):
             os.mkdir(output_directory)
 
-        df_non_test_sub.to_csv(output_directory.joinpath('test_subsample.csv'), sep=',', index=None, header=True)
-        df_test_sub.to_csv(output_directory.joinpath('train_subsample.csv'), sep=',', index=None, header=True)
+        df_non_test_sub.to_csv(output_directory.joinpath('train_subsample.csv'), sep=',', index=None, header=True)
+        df_test_sub.to_csv(output_directory.joinpath('test_subsample.csv'), sep=',', index=None, header=True)
 
     print('finished')
 
