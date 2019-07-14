@@ -22,8 +22,8 @@ def remove_rows_with_non_numeric_reference(dataframe):
     removes rows with non-numeric references
     return: dataframe with numeric references only
     """
-    # https://stackoverflow.com/questions/33961028/remove-non-numeric-rows-in-one-column-with-pandas
     dataframe.dropna(subset=['reference'], inplace=True)
+    # https://stackoverflow.com/questions/33961028/remove-non-numeric-rows-in-one-column-with-pandas
     return dataframe[dataframe.reference.apply(lambda x: x.isnumeric())]
 
 def give_weights(dataframe):
@@ -46,13 +46,13 @@ def drop_columns(dataframe):
     drops columns which are not used anymore
     return: dataframe with only session_id, reference and weight columns
     """
-    return dataframe.drop(['user_id', 'action_type', 'timestamp', 'step', 'platform', 'city', 'device', 'current_filters', 'impressions', 'prices'], axis=1)
+    return dataframe.drop(['action_type', 'timestamp', 'step', 'platform', 'city', 'device', 'current_filters', 'impressions', 'prices'], axis=1)
 
 def group_by(dataframe):
     """
     group by session and reference in order to sum up the weights
     """
-    return dataframe.groupby(['session_id','reference'], as_index=False).sum()
+    return dataframe.groupby(['user_id', 'session_id','reference'], as_index=False).sum()
 
 def prepare_dataset(dataframe):
     """
@@ -75,5 +75,6 @@ def sparse_matrix(prepared_dataset):
     """
     session_id_labels, session_id_levels = pd.factorize(prepared_dataset['session_id'])
     reference_labels, reference_levels = pd.factorize(prepared_dataset['reference'])
+    user_id_labels, user_id_levels = pd.factorize(prepared_dataset['user_id'])
     R = sp.csr_matrix((prepared_dataset.weight, (session_id_labels, reference_labels)))
-    return (R, (session_id_labels, session_id_levels), (reference_labels, reference_levels))
+    return (R, (user_id_labels, user_id_levels), (session_id_labels, session_id_levels), (reference_labels, reference_levels))
